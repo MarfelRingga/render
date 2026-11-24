@@ -22,9 +22,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - run: npm ci
+      - uses: oven-sh/setup-bun@v2.2.0
+
+      - run: bun install --frozen-lockfile
 
       # Opsional: buat voice over dari content/script.txt jika scripts/tts.mjs sudah ada.
       # - run: node scripts/tts.mjs
@@ -32,15 +33,15 @@ jobs:
       #     GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Pastikan browser headless tersedia
-        run: npx remotion browser ensure
+        run: bunx remotion browser ensure
 
       - name: Render
         run: |
           mkdir -p out
           if [ "${{ inputs.mode }}" = "preview" ]; then
-            npx remotion render src/index.ts "${{ inputs.composition }}" out/video.mp4 --scale=0.5 --frames=0-149
+            bunx remotion render src/index.ts "${{ inputs.composition }}" out/video.mp4 --scale=0.5 --frames=0-149
           else
-            npx remotion render src/index.ts "${{ inputs.composition }}" out/video.mp4 --codec=h264
+            bunx remotion render src/index.ts "${{ inputs.composition }}" out/video.mp4 --codec=h264
           fi
 
       - uses: actions/upload-artifact@v4
