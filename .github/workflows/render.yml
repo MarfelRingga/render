@@ -1,50 +1,34 @@
-name: Render video
+name: Render Remotion Video
 
 on:
   workflow_dispatch:
-    inputs:
-      composition:
-        description: "ID composition Remotion (lihat src/Root.tsx)"
-        default: "Main"
-      mode:
-        description: "preview = cepat & kecil, final = kualitas upload"
-        type: choice
-        options: [preview, final]
-        default: preview
+  push:
+    branches: [main]
 
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
         with:
-          node-version: 22
-          cache: npm
+          node-version: '22'
+          cache: 'npm'
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      # Opsional: buat voice over dari content/script.txt jika scripts/tts.mjs sudah ada.
-      # - run: node scripts/tts.mjs
-      #   env:
-      #     GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
-      - name: Pastikan browser headless tersedia
+      - name: Install headless browser dependencies
         run: npx remotion browser ensure
 
-      - name: Render
-        run: |
-          mkdir -p out
-          if [ "${{ inputs.mode }}" = "preview" ]; then
-            npx remotion render src/index.ts "${{ inputs.composition }}" out/video.mp4 --scale=0.5 --frames=0-149
-          else
-            npx remotion render src/index.ts "${{ inputs.composition }}" out/video.mp4 --codec=h264
-          fi
+      - name: Render video
+        run: npx remotion render src/index.ts Main out/cara-kerja-nfc.mp4 --gl=swangle
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload rendered video
+        uses: actions/upload-artifact@v4
         with:
-          name: video-${{ inputs.composition }}-${{ inputs.mode }}
-          path: out/video.mp4
-          retention-days: 7
+          name: cara-kerja-nfc
+          path: out/cara-kerja-nfc.mp4
