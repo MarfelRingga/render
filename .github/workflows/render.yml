@@ -1,34 +1,66 @@
-name: Render Remotion Video
+name: Render episode
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
+    inputs:
+      episode:
+        description: "Nama folder episode di src/episodes (contoh: nfc-cara-kerja)"
+        required: true
+      mode:
+        description: "preview = resolusi setengah, final = kualitas upload"
+        type: choice
+        options: [preview, final]
+        default: preview
+      frames:
+        description: "Opsional: rentang frame, contoh 0-149. Kosong = seluruh video"
+        required: false
+        default: ""
 
 jobs:
   render:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      EPISODE: ${{ inputs.episode }}
+      MODE: ${{ inputs.mode }}
+      FRAMES: ${{ inputs.frames }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+      - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: 22
+          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Install headless browser dependencies
+      - name: Pasang ffmpeg (untuk ffprobe)
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Hitung durasi audio dan daftar episode
+        run: node scripts/prepare.mjs "$EPISODE"
+
+      - name: Pastikan browser headless tersedia
         run: npx remotion browser ensure
 
-      - name: Render video
-        run: npx remotion render src/index.ts Main out/cara-kerja-nfc.mp4 --gl=swangle
+      - name: Render
+        run: |
+          mkdir -p out
+          args=(src/index.ts "$EPISODE" "out/${EPISODE}-${MODE}.mp4")
+          if [ "$MODE" = "preview" ]; then
+            args+=(--scale=0.5)
+          else
+            args+=(--codec=h264)
+          fi
+          if [ -n "$FRAMES" ]; then
+            args+=(--frames="$FRAMES")
+          fi
+          # Jika muncul error WebGL di runner, coba tambahkan: args+=(--gl=swangle)
+          npx remotion render "${args[@]}"
+          ls -lh out
 
-      - name: Upload rendered video
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: cara-kerja-nfc
-          path: out/cara-kerja-nfc.mp4
+          name: ${{ inputs.episode }}-${{ inputs.mode }}
+          path: out/*.mp4
+          retention-days: 7
