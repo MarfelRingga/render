@@ -1,7 +1,6 @@
 import { Player } from '@remotion/player';
+import { EPISODE_FPS, TOTAL_EPISODE_FRAMES, theme } from './lib/EpisodeShell';
 import { Main } from './Main';
-import { COLORS, VIDEO_HEIGHT, VIDEO_WIDTH } from './theme';
-import { FPS, TOTAL_FRAMES } from './timing';
 
 export default function App() {
   return (
@@ -9,7 +8,7 @@ export default function App() {
       style={{
         minHeight: '100vh',
         width: '100%',
-        backgroundColor: COLORS.BG_TOP,
+        backgroundColor: theme.bg,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -20,20 +19,20 @@ export default function App() {
       <div
         style={{
           height: 'calc(100vh - 32px)',
-          aspectRatio: `${VIDEO_WIDTH} / ${VIDEO_HEIGHT}`,
+          aspectRatio: '1080 / 1920',
           maxWidth: '100%',
           borderRadius: 12,
           overflow: 'hidden',
-          border: `1px solid ${COLORS.OVERLAY_BORDER}`,
-          backgroundColor: COLORS.BG_TOP,
+          border: '1px solid rgba(138, 151, 166, 0.24)',
+          backgroundColor: theme.bg,
         }}
       >
         <Player
           component={Main}
-          durationInFrames={TOTAL_FRAMES}
-          fps={FPS}
-          compositionWidth={VIDEO_WIDTH}
-          compositionHeight={VIDEO_HEIGHT}
+          durationInFrames={TOTAL_EPISODE_FRAMES}
+          fps={EPISODE_FPS}
+          compositionWidth={1080}
+          compositionHeight={1920}
           style={{ width: '100%', height: '100%' }}
           controls
           acknowledgeRemotionLicense

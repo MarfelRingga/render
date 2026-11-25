@@ -1,18 +1,17 @@
 import React from 'react';
 import { Composition } from 'remotion';
+import { EPISODE_FPS, TOTAL_EPISODE_FRAMES } from './lib/EpisodeShell';
 import { Main } from './Main';
-import { VIDEO_HEIGHT, VIDEO_WIDTH } from './theme';
-import { FPS, TOTAL_FRAMES } from './timing';
 
 export const RemotionRoot: React.FC = () => {
   return (
     <Composition
       id="Main"
       component={Main}
-      durationInFrames={TOTAL_FRAMES}
-      fps={FPS}
-      width={VIDEO_WIDTH}
-      height={VIDEO_HEIGHT}
+      durationInFrames={TOTAL_EPISODE_FRAMES}
+      fps={EPISODE_FPS}
+      width={1080}
+      height={1920}
     />
   );
 };
